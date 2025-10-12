@@ -42,19 +42,14 @@ pnpm check
 ```
 
 
-## Setting up Convex
+## Setting up Neon
 
-- Set the `VITE_CONVEX_URL` and `CONVEX_DEPLOYMENT` environment variables in your `.env.local`. (Or run `npx convex init` to set them automatically.)
-- Run `npx convex dev` to start the Convex server.
+When running the `dev` command, the `@neondatabase/vite-plugin-postgres` will identify there is not a database setup. It will then create and seed a claimable database.
 
+It is the same process as [Neon Launchpad](https://neon.new).
 
-## Shadcn
-
-Add components using the latest version of [Shadcn](https://ui.shadcn.com/).
-
-```bash
-pnpx shadcn@latest add button
-```
+> [!IMPORTANT]  
+> Claimable databases expire in 72 hours.
 
 
 ## T3Env
@@ -73,6 +68,15 @@ console.log(env.VITE_APP_TITLE);
 
 
 
+
+
+## Shadcn
+
+Add components using the latest version of [Shadcn](https://ui.shadcn.com/).
+
+```bash
+pnpx shadcn@latest add button
+```
 
 
 
