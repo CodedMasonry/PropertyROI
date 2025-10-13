@@ -1,3 +1,4 @@
+import MainForm from "@/components/home/main-form";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
@@ -5,5 +6,9 @@ export const Route = createFileRoute("/")({
 });
 
 function App() {
-  return <div className="bg-background text-foreground">Hello</div>;
+  return (
+    <div className="bg-background text-foreground mx-16 my-8">
+      <MainForm />
+    </div>
+  );
 }
