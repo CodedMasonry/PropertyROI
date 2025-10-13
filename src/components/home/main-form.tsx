@@ -41,16 +41,19 @@ const parseNumber = (str: string) => {
 
 // Schema
 const formSchema = z.object({
-  sellPrice: z.number().min(1),
-  annualTax: z.number().min(1.0),
-  rennovationExpenses: z.number(),
-  rentalIncomeMonthly: z.number().min(1),
-  vacancyRate: z.number().min(1),
+  // Property details
+  sellPrice: z.number().min(0),
+  annualTax: z.number().min(0),
+  rennovationExpenses: z.number().min(0),
+  // Rental details
+  rentalIncomeMonthly: z.number().min(0),
+  vacancyRate: z.number().min(0),
   annualExpenses: z.number().min(1),
-  percentDown: z.number(),
-  interestRate: z.number(),
-  loanDurationYears: z.number(),
-  annualAppreciationPercent: z.number(),
+  // Financing details
+  percentDown: z.number().min(0),
+  interestRate: z.number().min(0),
+  loanDurationYears: z.number().min(0),
+  annualAppreciationPercent: z.number().min(0),
 });
 
 // Currency Input Component
@@ -110,6 +113,67 @@ const CurrencyInput = ({
         <InputGroupAddon align="inline-end">
           <InputGroupText>USD</InputGroupText>
         </InputGroupAddon>
+      </InputGroup>
+      {description && <FieldDescription>{description}</FieldDescription>}
+      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+    </Field>
+  );
+};
+
+// Percentage Input Component
+const PercentageInput = ({
+  field,
+  label,
+  description,
+  inputValues,
+  setInputValues,
+}: any) => {
+  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+  const isFocused = inputValues[field.name] !== undefined;
+
+  return (
+    <Field data-invalid={isInvalid}>
+      <FieldLabel htmlFor={field.name}>{label}</FieldLabel>
+      <InputGroup>
+        <InputGroupAddon>
+          <InputGroupText>%</InputGroupText>
+        </InputGroupAddon>
+        <InputGroupInput
+          id={field.name}
+          name={field.name}
+          type="text"
+          inputMode="decimal"
+          value={isFocused ? inputValues[field.name] : field.state.value || ""}
+          onFocus={() => {
+            setInputValues((prev: any) => ({
+              ...prev,
+              [field.name]: String(field.state.value || ""),
+            }));
+          }}
+          onBlur={() => {
+            setInputValues((prev: any) => {
+              const newValues = { ...prev };
+              delete newValues[field.name];
+              return newValues;
+            });
+            field.handleBlur();
+          }}
+          onChange={(e) => {
+            const newValue = e.target.value;
+            if (validateDecimalInput(newValue)) {
+              const parsed = parseNumber(newValue);
+              // Hard limit to 100
+              if (parsed <= 100) {
+                setInputValues((prev: any) => ({
+                  ...prev,
+                  [field.name]: newValue,
+                }));
+                field.handleChange(parsed);
+              }
+            }
+          }}
+          aria-invalid={isInvalid}
+        />
       </InputGroup>
       {description && <FieldDescription>{description}</FieldDescription>}
       {isInvalid && <FieldError errors={field.state.meta.errors} />}
@@ -177,6 +241,42 @@ export default function MainForm() {
                 field={field}
                 label="Annual Tax"
                 description="The expected cost in taxes for the Property."
+                inputValues={inputValues}
+                setInputValues={setInputValues}
+              />
+            )}
+          />
+          <form.Field
+            name="rennovationExpenses"
+            children={(field) => (
+              <CurrencyInput
+                field={field}
+                label="Rennovation Expenses"
+                description="Money was spent on rennovations. This is simply combined with the sale price provide a more reliable estimate."
+                inputValues={inputValues}
+                setInputValues={setInputValues}
+              />
+            )}
+          />
+          <form.Field
+            name="rentalIncomeMonthly"
+            children={(field) => (
+              <CurrencyInput
+                field={field}
+                label="Monthly Rental Income"
+                description="The projected rental income per month."
+                inputValues={inputValues}
+                setInputValues={setInputValues}
+              />
+            )}
+          />
+          <form.Field
+            name="vacancyRate"
+            children={(field) => (
+              <PercentageInput
+                field={field}
+                label="Vacancy Rate"
+                description="The projected vacancy rate of the property."
                 inputValues={inputValues}
                 setInputValues={setInputValues}
               />
