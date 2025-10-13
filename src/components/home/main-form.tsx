@@ -1,5 +1,5 @@
 "use client";
-
+import React from "react";
 import {
   Field,
   FieldDescription,
@@ -11,40 +11,117 @@ import {
 } from "@/components/ui/field";
 import { useForm } from "@tanstack/react-form";
 import * as z from "zod";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "../ui/input-group";
+
+// Utilities
+const validateDecimalInput = (value: string): boolean => {
+  return /^\d*\.?\d{0,2}$/.test(value);
+};
+
+const formatNumber = (num: number) => {
+  if (!num && num !== 0) return "";
+  return num.toLocaleString("en-US", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+};
+
+const parseNumber = (str: string) => {
+  if (!str) return 0;
+  const cleaned = str.replace(/,/g, "");
+  const parsed = parseFloat(cleaned);
+  return isNaN(parsed) ? 0 : parsed;
+};
 
 // Schema
 const formSchema = z.object({
-  // Property Details
   sellPrice: z.number().min(1),
-  annualTax: z.number().min(1),
+  annualTax: z.number().min(1.0),
   rennovationExpenses: z.number(),
   rentalIncomeMonthly: z.number().min(1),
   vacancyRate: z.number().min(1),
   annualExpenses: z.number().min(1),
-  // Financing details
   percentDown: z.number(),
   interestRate: z.number(),
   loanDurationYears: z.number(),
-  // ROI details
   annualAppreciationPercent: z.number(),
 });
 
-// Format number with commas
-const formatNumber = (num: number) => {
-  if (!num && num !== 0) return "";
-  return Number(num).toLocaleString("en-US");
-};
+// Currency Input Component
+const CurrencyInput = ({
+  field,
+  label,
+  description,
+  inputValues,
+  setInputValues,
+}: any) => {
+  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+  const isFocused = inputValues[field.name] !== undefined;
 
-// Parse formatted string to number
-const parseNumber = (str: string) => {
-  if (!str) return 0;
-  const cleaned = str.replace(/,/g, "");
-  return Number(cleaned) || 0;
+  return (
+    <Field data-invalid={isInvalid}>
+      <FieldLabel htmlFor={field.name}>{label}</FieldLabel>
+      <InputGroup>
+        <InputGroupAddon>
+          <InputGroupText>$</InputGroupText>
+        </InputGroupAddon>
+        <InputGroupInput
+          id={field.name}
+          name={field.name}
+          type="text"
+          inputMode="decimal"
+          value={
+            isFocused
+              ? inputValues[field.name]
+              : formatNumber(field.state.value)
+          }
+          onFocus={() => {
+            setInputValues((prev: any) => ({
+              ...prev,
+              [field.name]: String(field.state.value || ""),
+            }));
+          }}
+          onBlur={() => {
+            setInputValues((prev: any) => {
+              const newValues = { ...prev };
+              delete newValues[field.name];
+              return newValues;
+            });
+            field.handleBlur();
+          }}
+          onChange={(e) => {
+            const newValue = e.target.value;
+            if (validateDecimalInput(newValue)) {
+              setInputValues((prev: any) => ({
+                ...prev,
+                [field.name]: newValue,
+              }));
+              field.handleChange(parseNumber(newValue));
+            }
+          }}
+          aria-invalid={isInvalid}
+        />
+        <InputGroupAddon align="inline-end">
+          <InputGroupText>USD</InputGroupText>
+        </InputGroupAddon>
+      </InputGroup>
+      {description && <FieldDescription>{description}</FieldDescription>}
+      {isInvalid && <FieldError errors={field.state.meta.errors} />}
+    </Field>
+  );
 };
 
 export default function MainForm() {
+  const [inputValues, setInputValues] = React.useState<Record<string, string>>(
+    {},
+  );
+
   const form = useForm({
     defaultValues: {
       sellPrice: 0,
@@ -83,36 +160,31 @@ export default function MainForm() {
         <FieldGroup>
           <form.Field
             name="sellPrice"
-            children={(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
-
-              return (
-                <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>
-                    Average Sale Price
-                  </FieldLabel>
-                  <Input
-                    id={field.name}
-                    name={field.name}
-                    value={formatNumber(field.state.value)}
-                    onBlur={field.handleBlur}
-                    onChange={(e) => {
-                      const parsed = parseNumber(e.target.value);
-                      field.handleChange(parsed);
-                    }}
-                    aria-invalid={isInvalid}
-                  />
-                  <FieldDescription>
-                    Provide a concise title for your bug report.
-                  </FieldDescription>
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                </Field>
-              );
-            }}
-          ></form.Field>
+            children={(field) => (
+              <CurrencyInput
+                field={field}
+                label="Sale Price"
+                description="How much was paid or expected to be paid for the property."
+                inputValues={inputValues}
+                setInputValues={setInputValues}
+              />
+            )}
+          />
+          <form.Field
+            name="annualTax"
+            children={(field) => (
+              <CurrencyInput
+                field={field}
+                label="Annual Tax"
+                description="The expected cost in taxes for the Property."
+                inputValues={inputValues}
+                setInputValues={setInputValues}
+              />
+            )}
+          />
         </FieldGroup>
       </FieldSet>
+
       <Button type="submit" className="text-white mt-4">
         Calculate
       </Button>
