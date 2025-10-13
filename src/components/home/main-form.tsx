@@ -143,7 +143,11 @@ const PercentageInput = ({
           name={field.name}
           type="text"
           inputMode="decimal"
-          value={isFocused ? inputValues[field.name] : field.state.value || ""}
+          value={
+            isFocused
+              ? inputValues[field.name]
+              : formatNumber(field.state.value)
+          }
           onFocus={() => {
             setInputValues((prev: any) => ({
               ...prev,
@@ -221,7 +225,7 @@ export default function MainForm() {
         <FieldDescription>
           The baseline information so ROI can be calculated.
         </FieldDescription>
-        <FieldGroup>
+        <FieldGroup className="grid grid-cols-2 gap-4">
           <form.Field
             name="sellPrice"
             children={(field) => (
