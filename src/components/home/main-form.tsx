@@ -1,15 +1,15 @@
 import React from "react";
 import {
   Field,
-  FieldContent,
   FieldDescription,
   FieldError,
   FieldGroup,
   FieldLabel,
   FieldLegend,
+  FieldSeparator,
   FieldSet,
 } from "@/components/ui/field";
-import { useForm, useStore } from "@tanstack/react-form";
+import { useForm } from "@tanstack/react-form";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,9 +17,18 @@ import {
   InputGroupAddon,
   InputGroupInput,
   InputGroupText,
-} from "../ui/input-group";
-import { Label } from "../ui/label";
-import { Card, CardContent } from "../ui/card";
+} from "@/components/ui/input-group";
+import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
 
 /*
 Helper Functions
@@ -167,6 +176,7 @@ const formSchema = z.object({
   rennovationExpenses: z.number(),
   rentalIncomeMonthly: z.number().min(1),
   vacancyRate: z.number(),
+  annualInsurance: z.number(),
   annualExpensesPercent: z.number(),
   percentDown: z.number(),
   interestRate: z.number(),
@@ -186,6 +196,7 @@ export default function MainForm() {
       rennovationExpenses: 0,
       rentalIncomeMonthly: 0,
       vacancyRate: 0,
+      annualInsurance: 0,
       annualExpensesPercent: 0,
       percentDown: 0,
       interestRate: 0,
@@ -231,20 +242,33 @@ export default function MainForm() {
               <CurrencyInput
                 field={field}
                 label="Rennovation Expenses"
-                description="Money was spent on rennovations. This is simply combined with the sale price provide a more reliable estimate."
+                description="Money spent on rennovations. This is simply combined with the sale price provide a more reliable estimate."
               />
             )}
           />
-          <form.Field
-            name="annualTax"
-            children={(field) => (
-              <CurrencyInput
-                field={field}
-                label="Annual Tax"
-                description="The expected cost in taxes for the Property."
-              />
+          <form.Subscribe
+            selector={(state) =>
+              calculatePercent(state.values.annualTax, state.values.sellPrice)
+            }
+          >
+            {(percentOfSalePrice) => (
+              <div>
+                <form.Field
+                  name="annualTax"
+                  children={(field) => (
+                    <CurrencyInput
+                      field={field}
+                      label="Annual Tax"
+                      description="The cost in taxes for the Property."
+                    />
+                  )}
+                />
+                <Label className="pt-2 text-primary text-sm">
+                  {percentOfSalePrice}% based on sale price
+                </Label>
+              </div>
             )}
-          />
+          </form.Subscribe>
           <form.Subscribe
             selector={(state) => {
               const total =
@@ -261,12 +285,12 @@ export default function MainForm() {
                     <PercentageInput
                       field={field}
                       label="Annual Expenses"
-                      description="The projected % dedicated to maintaining the property every year."
+                      description="The % dedicated to maintaining the property every year."
                     />
                   )}
                 </form.Field>
-                <Label className="pt-2 text-primary text-xs">
-                  {annualExpenses} based on sale price + rennovation expenses
+                <Label className="pt-2 text-primary text-sm">
+                  ${annualExpenses} based on sale price + rennovation expenses
                 </Label>
               </div>
             )}
@@ -284,11 +308,11 @@ export default function MainForm() {
                     <CurrencyInput
                       field={field}
                       label="Monthly Rental Income"
-                      description="The projected rental income per month."
+                      description="The rental income per month."
                     />
                   )}
                 />
-                <Label className="pt-2 text-primary text-xs">
+                <Label className="pt-2 text-primary text-sm">
                   ${rentalIncomeAnnually} annually
                 </Label>
               </div>
@@ -308,17 +332,110 @@ export default function MainForm() {
                     <PercentageInput
                       field={field}
                       label="Vacancy Rate"
-                      description="The projected vacancy rate of the property."
+                      description="The vacancy rate of the property."
                     />
                   )}
                 />
-                <Label className="pt-2 text-primary text-xs">
+                <Label className="pt-2 text-primary text-sm">
                   ${formatNumber(rentalIncomeAnnually)} lost in revnue annually
                 </Label>
               </div>
             )}
           </form.Subscribe>
+          <form.Field
+            name="annualInsurance"
+            children={(field) => (
+              <CurrencyInput
+                field={field}
+                label="Annual Insurance Rate"
+                description="The insurance rate per year."
+              />
+            )}
+          />
         </FieldGroup>
+        <FieldSeparator />
+        <form.Subscribe selector={(state) => state.values}>
+          {(values) => {
+            const rentAnnual = values.rentalIncomeMonthly * 12;
+            const lostToVanacy =
+              (values.vacancyRate / 100) * (values.rentalIncomeMonthly * 12);
+            const totalHomeValue =
+              values.sellPrice + values.rennovationExpenses;
+            const expenses =
+              (values.annualExpensesPercent / 100) * totalHomeValue;
+            const operatingIncome =
+              rentAnnual - lostToVanacy - expenses - values.annualInsurance;
+
+            return (
+              <div>
+                <Table>
+                  <TableCaption>
+                    <p>
+                      Net Capital Rate (NOI / SP):
+                      <span className="font-bold text-primary">
+                        {" "}
+                        {formatNumber(
+                          calculatePercent(operatingIncome, values.sellPrice),
+                        )}
+                        {"%"}
+                      </span>
+                    </p>
+                    <p className="text-sm font-light">
+                      The rate of return on the property
+                    </p>
+                  </TableCaption>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Income / Expense</TableHead>
+                      <TableHead>Amount</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>Annual Rental Income</TableCell>
+                      <TableCell className="text-green-500">
+                        + ${formatNumber(rentAnnual)}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Lost to Vacancy</TableCell>
+                      <TableCell className="text-red-500">
+                        - ${formatNumber(lostToVanacy)}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Operating Expenses</TableCell>
+                      <TableCell className="text-red-500">
+                        - ${formatNumber(expenses)}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Insurance Payment</TableCell>
+                      <TableCell className="text-red-500">
+                        - ${formatNumber(values.annualInsurance)}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                  <TableFooter>
+                    <TableRow>
+                      <TableCell>Net Operating Income (Annual)</TableCell>
+                      <TableCell
+                        className={
+                          operatingIncome > 0
+                            ? "text-green-500"
+                            : "text-red-500"
+                        }
+                      >
+                        {operatingIncome > 0 ? "+ $" : "- $"}
+                        {formatNumber(operatingIncome)}
+                      </TableCell>
+                    </TableRow>
+                  </TableFooter>
+                </Table>
+              </div>
+            );
+          }}
+        </form.Subscribe>
       </FieldSet>
       <Button type="submit" className="text-white mt-8">
         Calculate
