@@ -364,7 +364,11 @@ export default function MainForm() {
             const expenses =
               (values.annualExpensesPercent / 100) * totalHomeValue;
             const operatingIncome =
-              rentAnnual - lostToVanacy - expenses - values.annualInsurance;
+              rentAnnual -
+              lostToVanacy -
+              expenses -
+              values.annualInsurance -
+              values.annualTax;
 
             return (
               <div>
@@ -398,15 +402,21 @@ export default function MainForm() {
                       </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell>Lost to Vacancy</TableCell>
+                      <TableCell>Annual Tax</TableCell>
                       <TableCell className="text-red-500">
-                        - ${formatNumber(lostToVanacy)}
+                        - ${formatNumber(values.annualTax)}
                       </TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell>Operating Expenses</TableCell>
+                      <TableCell>Annual Expenses</TableCell>
                       <TableCell className="text-red-500">
                         - ${formatNumber(expenses)}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell>Lost to Vacancy</TableCell>
+                      <TableCell className="text-red-500">
+                        - ${formatNumber(lostToVanacy)}
                       </TableCell>
                     </TableRow>
                     <TableRow>
@@ -427,7 +437,7 @@ export default function MainForm() {
                         }
                       >
                         {operatingIncome > 0 ? "+ $" : "- $"}
-                        {formatNumber(operatingIncome)}
+                        {formatNumber(Math.abs(operatingIncome))}
                       </TableCell>
                     </TableRow>
                   </TableFooter>
