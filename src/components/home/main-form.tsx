@@ -1,10 +1,7 @@
 import React from "react";
 import {
-  Field,
   FieldDescription,
-  FieldError,
   FieldGroup,
-  FieldLabel,
   FieldLegend,
   FieldSeparator,
   FieldSet,
@@ -12,12 +9,6 @@ import {
 import { useForm } from "@tanstack/react-form";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-  InputGroupText,
-} from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
 import {
   Table,
@@ -30,13 +21,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { usePersistedState } from "@/lib/persistedState";
-import {
-  calculatePercent,
-  formatNumber,
-  parseNumber,
-  validateDecimalInput,
-} from "@/lib/utils";
-import PercentageInput from "../percentageInput";
+import { calculatePercent, formatNumber } from "@/lib/utils";
+import PercentageInput from "@/components/percentageInput";
+import CurrencyInput from "@/components/currencyInput";
+import IncomeTable from "./incomeTable";
 
 /*
 Schema
@@ -242,96 +230,7 @@ export default function MainForm() {
         </FieldGroup>
         <FieldSeparator />
         <form.Subscribe selector={(state) => state.values}>
-          {(values) => {
-            const rentAnnual = values.rentalIncomeMonthly * 12;
-            const lostToVanacy =
-              (values.vacancyRate / 100) * (values.rentalIncomeMonthly * 12);
-            const totalHomeValue =
-              values.sellPrice + values.rennovationExpenses;
-            const expenses =
-              (values.annualExpensesPercent / 100) * totalHomeValue;
-            const operatingIncome =
-              rentAnnual -
-              lostToVanacy -
-              expenses -
-              values.annualInsurance -
-              values.annualTax;
-
-            return (
-              <div>
-                <Table>
-                  <TableCaption>
-                    <p>
-                      Net Capital Rate (NOI / SP):
-                      <span className="font-bold text-primary">
-                        {" "}
-                        {formatNumber(
-                          calculatePercent(operatingIncome, values.sellPrice),
-                        )}
-                        {"%"}
-                      </span>
-                    </p>
-                    <p className="text-sm font-light">
-                      The rate of return on the property
-                    </p>
-                  </TableCaption>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Income / Expense</TableHead>
-                      <TableHead>Amount</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>Annual Rental Income</TableCell>
-                      <TableCell className="text-green-500">
-                        + ${formatNumber(rentAnnual)}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Annual Tax</TableCell>
-                      <TableCell className="text-red-500">
-                        - ${formatNumber(values.annualTax)}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Annual Expenses</TableCell>
-                      <TableCell className="text-red-500">
-                        - ${formatNumber(expenses)}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Lost to Vacancy</TableCell>
-                      <TableCell className="text-red-500">
-                        - ${formatNumber(lostToVanacy)}
-                      </TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Insurance Payment</TableCell>
-                      <TableCell className="text-red-500">
-                        - ${formatNumber(values.annualInsurance)}
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                  <TableFooter>
-                    <TableRow>
-                      <TableCell>Net Operating Income (Annual)</TableCell>
-                      <TableCell
-                        className={
-                          operatingIncome > 0
-                            ? "text-green-500"
-                            : "text-red-500"
-                        }
-                      >
-                        {operatingIncome > 0 ? "+ $" : "- $"}
-                        {formatNumber(Math.abs(operatingIncome))}
-                      </TableCell>
-                    </TableRow>
-                  </TableFooter>
-                </Table>
-              </div>
-            );
-          }}
+          {(values) => <IncomeTable values={values} />}
         </form.Subscribe>
       </FieldSet>
       <div className="flex gap-4 mt-8">
