@@ -29,181 +29,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-/*
-Helper Functions
-*/
-
-const validateDecimalInput = (value: string): boolean => {
-  return /^[\d,]*\.?\d{0,2}$/.test(value);
-};
-
-const formatNumber = (num: number) => {
-  if (num !== 0 && !num) return "";
-  return num.toLocaleString("en-US", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  });
-};
-
-const parseNumber = (str: string) => {
-  if (!str) return 0;
-  const cleaned = str.replace(/,/g, "");
-  const parsed = parseFloat(cleaned);
-  return isNaN(parsed) ? 0 : parsed;
-};
-
-const calculatePercent = (numerator: number, denominator: number): number => {
-  if (numerator === 0 || denominator === 0) return 0;
-  const percent = (numerator / denominator) * 100;
-  return Math.round(percent * 100) / 100;
-};
-
-/*
-Storage Hook
-*/
-
-const usePersistedState = <T,>(key: string, defaultValue: T) => {
-  const [state, setState] = React.useState<T>(() => {
-    try {
-      const item = sessionStorage.getItem(key);
-      return item ? JSON.parse(item) : defaultValue;
-    } catch {
-      return defaultValue;
-    }
-  });
-
-  const setPersistedState = React.useCallback(
-    (value: T | ((prev: T) => T)) => {
-      setState((prev) => {
-        const newValue = value instanceof Function ? value(prev) : value;
-        try {
-          sessionStorage.setItem(key, JSON.stringify(newValue));
-        } catch (e) {
-          console.warn("Failed to save to storage:", e);
-        }
-        return newValue;
-      });
-    },
-    [key],
-  );
-
-  const clearPersistedState = React.useCallback(() => {
-    try {
-      sessionStorage.removeItem(key);
-    } catch (e) {
-      console.warn("Failed to clear storage:", e);
-    }
-    setState(defaultValue);
-  }, [key, defaultValue]);
-
-  return [state, setPersistedState, clearPersistedState] as const;
-};
-
-/*
-Re-usable Components
-*/
-
-const CurrencyInput = ({ field, label, description }: any) => {
-  const [inputValue, setInputValue] = React.useState<string | undefined>(
-    undefined,
-  );
-  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-  const isFocused = inputValue !== undefined;
-
-  return (
-    <Field data-invalid={isInvalid}>
-      <FieldLabel htmlFor={field.name}>{label}</FieldLabel>
-      <InputGroup>
-        <InputGroupAddon>
-          <InputGroupText>$</InputGroupText>
-        </InputGroupAddon>
-        <InputGroupInput
-          id={field.name}
-          name={field.name}
-          type="text"
-          inputMode="decimal"
-          value={isFocused ? inputValue : formatNumber(field.state.value)}
-          onFocus={() => {
-            setInputValue(String(field.state.value || ""));
-          }}
-          onBlur={() => {
-            setInputValue(undefined);
-            field.handleBlur();
-          }}
-          onChange={(e) => {
-            const newValue = e.target.value;
-            if (validateDecimalInput(newValue)) {
-              setInputValue(newValue);
-              field.handleChange(parseNumber(newValue));
-            }
-          }}
-          onPaste={(e) => {
-            const pastedText = e.clipboardData.getData("text");
-            if (validateDecimalInput(pastedText)) {
-              e.preventDefault();
-              const parsed = parseNumber(pastedText);
-              setInputValue(pastedText);
-              field.handleChange(parsed);
-            }
-          }}
-          aria-invalid={isInvalid}
-        />
-        <InputGroupAddon align="inline-end">
-          <InputGroupText>USD</InputGroupText>
-        </InputGroupAddon>
-      </InputGroup>
-      {description && <FieldDescription>{description}</FieldDescription>}
-      {isInvalid && <FieldError errors={field.state.meta.errors} />}
-    </Field>
-  );
-};
-
-const PercentageInput = ({ field, label, description }: any) => {
-  const [inputValue, setInputValue] = React.useState<string | undefined>(
-    undefined,
-  );
-  const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
-  const isFocused = inputValue !== undefined;
-
-  return (
-    <Field data-invalid={isInvalid}>
-      <FieldLabel htmlFor={field.name}>{label}</FieldLabel>
-      <InputGroup>
-        <InputGroupAddon>
-          <InputGroupText>%</InputGroupText>
-        </InputGroupAddon>
-        <InputGroupInput
-          id={field.name}
-          name={field.name}
-          type="text"
-          inputMode="decimal"
-          value={isFocused ? inputValue : formatNumber(field.state.value)}
-          onFocus={() => {
-            setInputValue(String(field.state.value || ""));
-          }}
-          onBlur={() => {
-            setInputValue(undefined);
-            field.handleBlur();
-          }}
-          onChange={(e) => {
-            const newValue = e.target.value;
-            if (validateDecimalInput(newValue)) {
-              const parsed = parseNumber(newValue);
-              if (parsed <= 100) {
-                setInputValue(newValue);
-                field.handleChange(parsed);
-              }
-            }
-          }}
-          aria-invalid={isInvalid}
-        />
-      </InputGroup>
-      {description && <FieldDescription>{description}</FieldDescription>}
-      {isInvalid && <FieldError errors={field.state.meta.errors} />}
-    </Field>
-  );
-};
+import { usePersistedState } from "@/lib/persistedState";
+import {
+  calculatePercent,
+  formatNumber,
+  parseNumber,
+  validateDecimalInput,
+} from "@/lib/utils";
+import PercentageInput from "../percentageInput";
 
 /*
 Schema
@@ -264,13 +97,13 @@ export default function MainForm() {
     return () => subscription();
   }, [form.store, setPersistedValues]);
 
-  const handleClear = () => {
+  function handleClear() {
     form.reset();
     // Give the form time to reset before clearing storage
     setTimeout(() => {
       clearPersistedValues();
     }, 0);
-  };
+  }
 
   return (
     <form
