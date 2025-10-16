@@ -10,21 +10,12 @@ import { useForm } from "@tanstack/react-form";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { usePersistedState } from "@/lib/persistedState";
 import { calculatePercent, formatNumber } from "@/lib/utils";
 import PercentageInput from "@/components/percentageInput";
 import CurrencyInput from "@/components/currencyInput";
 import IncomeTable from "./incomeTable";
+import DurationInput from "../durationInput";
 
 /*
 Schema
@@ -102,7 +93,7 @@ export default function MainForm() {
       }}
     >
       <FieldSet>
-        <FieldLegend>Property Details</FieldLegend>
+        <FieldLegend className="font-bold">Property Details</FieldLegend>
         <FieldDescription>
           The baseline information so ROI can be calculated.
         </FieldDescription>
@@ -197,8 +188,10 @@ export default function MainForm() {
           </form.Subscribe>
           <form.Subscribe
             selector={(state) =>
-              (state.values.vacancyRate / 100) *
-              (state.values.rentalIncomeMonthly * 12)
+              calculatePercent(
+                state.values.vacancyRate,
+                state.values.rentalIncomeMonthly * 12,
+              )
             }
           >
             {(rentalIncomeAnnually) => (
@@ -229,16 +222,72 @@ export default function MainForm() {
           </form.Field>
         </FieldGroup>
         <FieldSeparator />
-        <form.Subscribe selector={(state) => state.values}>
-          {(values) => <IncomeTable values={values} />}
-        </form.Subscribe>
+        <FieldSet>
+          <FieldLegend className="font-bold">Financing Details</FieldLegend>
+          <FieldDescription>
+            Information required to calculate financing details.
+          </FieldDescription>
+          <FieldGroup className="grid grid-cols-2 gap-4">
+            <form.Field name="percentDown">
+              {(field) => (
+                <PercentageInput
+                  field={field}
+                  label="Percent Down"
+                  description="The percentage of the property paid for in cash."
+                />
+              )}
+            </form.Field>
+            <form.Field name="interestRate">
+              {(field) => (
+                <PercentageInput
+                  field={field}
+                  label="Interest Rate"
+                  description="The interest rate on the loan."
+                />
+              )}
+            </form.Field>
+            <form.Field name="loanDurationYears">
+              {(field) => (
+                <DurationInput
+                  field={field}
+                  label="Loan Duration"
+                  description="The total duration of the loan in years."
+                />
+              )}
+            </form.Field>
+            <form.Field name="annualAppreciationPercent">
+              {(field) => (
+                <PercentageInput
+                  field={field}
+                  label="Annual Appreciation"
+                  description="The projected annual increase in the value of the property."
+                />
+              )}
+            </form.Field>
+          </FieldGroup>
+          <FieldSeparator />
+        </FieldSet>
+        <FieldSet>
+          <FieldLegend className="text-yellow-600 dark:text-yellow-500 font-bold">
+            In-Cash Return
+          </FieldLegend>
+          <FieldDescription>
+            How much is made annually if property is paid for in cash.
+          </FieldDescription>
+          <FieldGroup>
+            <form.Subscribe selector={(state) => state.values}>
+              {(values) => <IncomeTable values={values} />}
+            </form.Subscribe>
+          </FieldGroup>
+          <FieldSeparator />
+        </FieldSet>
       </FieldSet>
       <div className="flex gap-4 mt-8">
         <Button type="submit" className="text-white">
           Calculate
         </Button>
         <Button type="button" variant="outline" onClick={handleClear}>
-          Clear Form
+          Clear
         </Button>
       </div>
     </form>

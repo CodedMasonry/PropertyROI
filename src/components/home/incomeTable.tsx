@@ -42,7 +42,7 @@ export default function IncomeTable({ values }: IncomeTableProps) {
       <TableCaption>
         <p>
           Net Capital Rate (NOI / SP):{" "}
-          <span className="font-bold text-primary">
+          <span className="font-bold text-yellow-600 dark:text-yellow-500">
             {formatNumber(capRate)}%
           </span>
         </p>
@@ -51,26 +51,26 @@ export default function IncomeTable({ values }: IncomeTableProps) {
 
       <TableHeader>
         <TableRow>
-          <TableHead>Income / Expense</TableHead>
+          <TableHead>Annual Income / Expenses</TableHead>
           <TableHead>Amount</TableHead>
         </TableRow>
       </TableHeader>
 
       <TableBody>
         <TableRow>
-          <TableCell>Annual Rental Income</TableCell>
+          <TableCell>Rental Income</TableCell>
           <TableCell className="text-green-500">
             + ${formatNumber(rentAnnual)}
           </TableCell>
         </TableRow>
         <TableRow>
-          <TableCell>Annual Tax</TableCell>
+          <TableCell>Tax</TableCell>
           <TableCell className="text-red-500">
             - ${formatNumber(values.annualTax)}
           </TableCell>
         </TableRow>
         <TableRow>
-          <TableCell>Annual Expenses</TableCell>
+          <TableCell>Expenses</TableCell>
           <TableCell className="text-red-500">
             - ${formatNumber(expenses)}
           </TableCell>
@@ -91,9 +91,13 @@ export default function IncomeTable({ values }: IncomeTableProps) {
 
       <TableFooter>
         <TableRow>
-          <TableCell>Net Operating Income (Annual)</TableCell>
+          <TableCell>Net Operating Income</TableCell>
           <TableCell
-            className={operatingIncome > 0 ? "text-green-500" : "text-red-500"}
+            className={
+              operatingIncome > 0
+                ? "font-semibold text-green-500"
+                : "font-semibold text-red-500"
+            }
           >
             {operatingIncome > 0 ? "+ $" : "- $"}
             {formatNumber(Math.abs(operatingIncome))}

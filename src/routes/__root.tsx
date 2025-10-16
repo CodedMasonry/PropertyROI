@@ -1,11 +1,23 @@
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router";
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import { TanStackDevtools } from "@tanstack/react-devtools";
 
 import appCss from "../styles.css?url";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Navbar } from "@/components/navbar";
 import { Toaster } from "@/components/ui/sonner";
+
+/*
+<TanStackDevtools
+  config={{
+    position: "bottom-right",
+  }}
+  plugins={[
+    {
+      name: "Tanstack Router",
+      render: <TanStackRouterDevtoolsPanel />,
+    },
+  ]}
+/>
+*/
 
 export const Route = createRootRoute({
   head: () => ({
@@ -18,7 +30,7 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "TanStack Start Starter",
+        title: "PropertyROI",
       },
     ],
     links: [
@@ -48,17 +60,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           <Navbar />
           {children}
         </ThemeProvider>
-        <TanStackDevtools
-          config={{
-            position: "bottom-right",
-          }}
-          plugins={[
-            {
-              name: "Tanstack Router",
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
         <Toaster />
         <Scripts />
       </body>
