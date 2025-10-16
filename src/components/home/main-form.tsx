@@ -221,66 +221,64 @@ export default function MainForm() {
             )}
           </form.Field>
         </FieldGroup>
+      </FieldSet>
+      <FieldSet className="px-4 py-2 border-2 rounded-xl mt-6 border-yellow-600 border:ring-yellow-500">
+        <FieldLegend className="bg-background px-1 text-yellow-600 dark:text-yellow-500 font-bold">
+          In Cash Return
+        </FieldLegend>
+        <FieldDescription>
+          How much is made annually if property is paid for in cash.
+        </FieldDescription>
+        <FieldGroup>
+          <form.Subscribe selector={(state) => state.values}>
+            {(values) => <IncomeTable values={values} />}
+          </form.Subscribe>
+        </FieldGroup>
+      </FieldSet>
+      <FieldSet className="mt-6">
+        <FieldLegend className="font-bold">Financing Details</FieldLegend>
+        <FieldDescription>
+          Information required to calculate financing details.
+        </FieldDescription>
+        <FieldGroup className="grid grid-cols-2 gap-4">
+          <form.Field name="percentDown">
+            {(field) => (
+              <PercentageInput
+                field={field}
+                label="Percent Down"
+                description="The percentage of the property paid for in cash."
+              />
+            )}
+          </form.Field>
+          <form.Field name="interestRate">
+            {(field) => (
+              <PercentageInput
+                field={field}
+                label="Interest Rate"
+                description="The interest rate on the loan."
+              />
+            )}
+          </form.Field>
+          <form.Field name="loanDurationYears">
+            {(field) => (
+              <DurationInput
+                field={field}
+                label="Loan Duration"
+                description="The total duration of the loan in years."
+              />
+            )}
+          </form.Field>
+          <form.Field name="annualAppreciationPercent">
+            {(field) => (
+              <PercentageInput
+                field={field}
+                label="Annual Appreciation"
+                description="The projected annual increase in the value of the property."
+              />
+            )}
+          </form.Field>
+        </FieldGroup>
         <FieldSeparator />
-        <FieldSet>
-          <FieldLegend className="font-bold">Financing Details</FieldLegend>
-          <FieldDescription>
-            Information required to calculate financing details.
-          </FieldDescription>
-          <FieldGroup className="grid grid-cols-2 gap-4">
-            <form.Field name="percentDown">
-              {(field) => (
-                <PercentageInput
-                  field={field}
-                  label="Percent Down"
-                  description="The percentage of the property paid for in cash."
-                />
-              )}
-            </form.Field>
-            <form.Field name="interestRate">
-              {(field) => (
-                <PercentageInput
-                  field={field}
-                  label="Interest Rate"
-                  description="The interest rate on the loan."
-                />
-              )}
-            </form.Field>
-            <form.Field name="loanDurationYears">
-              {(field) => (
-                <DurationInput
-                  field={field}
-                  label="Loan Duration"
-                  description="The total duration of the loan in years."
-                />
-              )}
-            </form.Field>
-            <form.Field name="annualAppreciationPercent">
-              {(field) => (
-                <PercentageInput
-                  field={field}
-                  label="Annual Appreciation"
-                  description="The projected annual increase in the value of the property."
-                />
-              )}
-            </form.Field>
-          </FieldGroup>
-          <FieldSeparator />
-        </FieldSet>
-        <FieldSet>
-          <FieldLegend className="text-yellow-600 dark:text-yellow-500 font-bold">
-            In-Cash Return
-          </FieldLegend>
-          <FieldDescription>
-            How much is made annually if property is paid for in cash.
-          </FieldDescription>
-          <FieldGroup>
-            <form.Subscribe selector={(state) => state.values}>
-              {(values) => <IncomeTable values={values} />}
-            </form.Subscribe>
-          </FieldGroup>
-          <FieldSeparator />
-        </FieldSet>
       </FieldSet>
       <div className="flex gap-4 mt-8">
         <Button type="submit" className="text-white">

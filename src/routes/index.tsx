@@ -7,7 +7,7 @@ export const Route = createFileRoute("/")({
 
 function App() {
   return (
-    <div className="bg-background text-foreground w-1/2 mx-auto my-8">
+    <div className="bg-background text-foreground md:w-1/2 md:mx-auto m-8">
       <MainForm />
     </div>
   );
